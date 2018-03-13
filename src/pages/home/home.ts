@@ -36,7 +36,7 @@ export class HomePage {
         this.currentUser = null;
         return;
       }
-      this.currentUser = {handle: null, uid: user.uid, isAnon: user.isAnonymous};
+      this.currentUser = {handle: user.displayName, uid: user.uid, isAnon: user.isAnonymous};
     });
   }
 
@@ -66,20 +66,21 @@ export class HomePage {
     nPost.update({
       id: nPost.key,
       poster: this.currentUser.uid,
+      posterName: this.currentUser.handle,
       text: content,
       vis: visibility,
       score: 0
     });
   }
 
-  getHandle(posterid: string){
+  /* getHandle(posterid: string){
     let n: string = 'Generic';
-    /* this.afDB.object('users/' + posterid).snapshotChanges().subscribe(action => {
+    this.afDB.object('users/' + posterid).snapshotChanges().subscribe(action => {
       const poster = action.payload.val();
       n = poster.handle;
-    }); */
+    });
     return n;
-  }
+  } */
 
   follow(posterid) {
     //update user following
