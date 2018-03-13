@@ -27,8 +27,17 @@ export class HomePage {
   ) {
     this.postList = afDB.list('posts', ref =>
       ref.orderByChild('score'));
-    this.posts = this.postList.valueChanges().map((array) => array.reverse()) as Observable<any[]>;
-
+    this.posts = this.postList.valueChanges()
+      .map(array => array.reverse())
+      .map(mposts => mposts
+        .filter(post => {
+          console.log(post.vis);
+          return (post.vis == 'public') ||
+          (this.currentUser && 
+            (post.poster == this.currentUser.uid) ||
+            (post.vis == 'followers' &&
+              (this.currentUser.following && post.poster in this.currentUser.following)))}
+      )) as Observable<any[]>;
     this.visibility = 'public';
 
     afAuth.authState.subscribe(user => {
@@ -36,7 +45,17 @@ export class HomePage {
         this.currentUser = null;
         return;
       }
-      this.currentUser = {handle: user.displayName, uid: user.uid, isAnon: user.isAnonymous};
+      this.currentUser = {
+        handle: user.displayName,
+        uid: user.uid,
+        isAnon: user.isAnonymous
+      };
+      afDB.object('users/' + user.uid + '/following').snapshotChanges().subscribe(action => {
+        if(!action){
+          return;
+        }
+        this.currentUser['following'] = action.payload.val();
+      })
     });
   }
 
@@ -51,7 +70,7 @@ export class HomePage {
             handle: res.user.displayName,
             uid: res.user.uid,
             isAnon: false,
-            following: [],
+            following: {},
             votes: {}
           });
       });
