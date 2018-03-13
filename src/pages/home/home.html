@@ -51,33 +51,35 @@
         </ion-card>
 
         <ion-grid>
-        <ion-row wrap>
-          <ion-card ion-col col-6 *ngFor="let post of posts | async">
-            <ion-item>
-              {{getHandle(post.poster).handle}} said
-              <button ion-button icon-end outline small (click)='follow(post.poster)'>
-                <div>Follow</div>
-                <ion-icon name="happy"></ion-icon>
-              </button>
-            </ion-item>
-            <ion-card-content>
-              <p>{{post.text}}</p>
-            </ion-card-content>
-            <ion-row>
-              <ion-col>
-                <button ion-button icon-only small clear (click)='thumbs(post.id,post.score+1)'>
-                  <ion-icon name="thumbs-up"></ion-icon>
-                </button>
-                <button ion-button icon-only small clear (click)='thumbs(post.id,post.score-1)'>
-                  <ion-icon name="thumbs-down"></ion-icon>
-                </button>
-              </ion-col>
-              <ion-col align-self-center text-right>
-                {{post.score}}
-              </ion-col>
-            </ion-row>
-          </ion-card>
-        </ion-row>
+          <ion-row wrap>
+            <ion-card ion-col col-6 *ngFor="let post of posts | async">
+              <ion-row>
+                <ion-col align-self-center>{{getHandle(post.poster).handle}} said</ion-col>
+                <ion-col align-self-center text-right>
+                  <button ion-button icon-end outline small (click)='follow(post.poster)'>
+                    <div>Follow</div>
+                    <ion-icon name="happy"></ion-icon>
+                  </button>
+                </ion-col>
+              </ion-row>
+              <ion-card-content>
+                <p>{{post.text}}</p>
+              </ion-card-content>
+              <ion-row>
+                <ion-col>
+                  <button ion-button icon-only small clear (click)='thumbs(post.id,post.score+1)'>
+                    <ion-icon name="thumbs-up"></ion-icon>
+                  </button>
+                  <button ion-button icon-only small clear (click)='thumbs(post.id,post.score-1)'>
+                    <ion-icon name="thumbs-down"></ion-icon>
+                  </button>
+                </ion-col>
+                <ion-col align-self-center text-right>
+                  {{post.score}}
+                </ion-col>
+              </ion-row>
+            </ion-card>
+          </ion-row>
         </ion-grid>
       </ion-col>
 

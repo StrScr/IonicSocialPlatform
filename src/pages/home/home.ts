@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { NavController } from 'ionic-angular';
+import { NavController, AlertController } from 'ionic-angular';
 
 import { AngularFireDatabase, AngularFireList } from 'angularfire2/database';
 import { Observable } from 'rxjs/Observable';
@@ -22,7 +22,8 @@ export class HomePage {
   constructor(
     public navCtrl: NavController,
     private afDB: AngularFireDatabase,
-    private afAuth: AngularFireAuth
+    private afAuth: AngularFireAuth,
+    public alertCtrl: AlertController
   ) {
     this.postList = afDB.list('posts', ref =>
       ref.orderByChild('score'));
@@ -71,8 +72,8 @@ export class HomePage {
     });
   }
 
-  getHandle(posterid){
-    let n = 'derp'
+  getHandle(posterid: string){
+    let n: string = 'Generic';
     /* this.afDB.object('users/' + posterid).snapshotChanges().subscribe(action => {
       const poster = action.payload.val();
       n = poster.handle;
@@ -82,20 +83,25 @@ export class HomePage {
 
   follow(posterid) {
     //update user following
-    const userList = this.afDB.list('users');
-    const thisUser = this.afDB.list('users', ref => ref.orderByChild('id').equalTo(this.currentUser.uid))[0];
-    if(posterid in thisUser.following){
-      userList.update(this.currentUser.uid,{
-        following: thisUser.following.filter(obj => obj !== posterid)
-      });
-    }else{
-      userList.update(this.currentUser.uid,{
-        following: thisUser.following.concat(posterid)
-      });
+    if(!this.currentUser){
+      this.showAlert('Alert','Please log in.');
+      return;
     }
+    if(posterid==this.currentUser.uid){
+      this.showAlert('Impossible!','Can\'t follow yourself!');
+      return;
+    }
+    const thisUserFollow = this.afDB.object('users/' + this.currentUser.uid + '/following');
+    thisUserFollow.update({
+      [posterid]: true
+    });
   }
 
   thumbs(postid, nscore) {
+    if(!this.currentUser){
+      this.showAlert('Alert','Please log in.');
+      return;
+    }
     this.afDB.object('posts/' + postid).update({
       score: nscore
     });
@@ -147,5 +153,14 @@ export class HomePage {
       console.log('5')
     });
     console.log('6') */
+  }
+
+  showAlert(aTitle: string, aSub: string){
+    let alert = this.alertCtrl.create({
+      title: aTitle,
+      subTitle: aSub,
+      buttons: ['OK']
+    });
+    alert.present();
   }
 }
