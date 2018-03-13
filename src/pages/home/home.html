@@ -1,14 +1,89 @@
 <ion-header>
   <ion-navbar>
     <ion-title>
-      Ionic Blank
+      Social Platform
     </ion-title>
+    <ion-buttons end *ngIf="afAuth.authState | async; else Login">
+      <button ion-button full color="primary" (click)="signOut()">
+        Logout
+      </button>
+    </ion-buttons>
+    <ng-template #Login>
+      <ion-buttons end>
+        <button ion-button icon-start color="primary" (click)="signInWithGoogle()">
+          <ion-icon name="logo-google"></ion-icon>
+          Sign In with Google
+        </button>
+      </ion-buttons>
+    </ng-template>
   </ion-navbar>
 </ion-header>
 
 <ion-content padding>
-  The world is your oyster.
-  <p>
-    If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will be your guide.
-  </p>
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <ion-card *ngIf="currentUser">
+          <ion-item>
+            Say something...
+          </ion-item>
+          <ion-item>
+            <ion-textarea placeholder="Here's what's on my mind..." maxlength="200" [(ngModel)]="content" autosize></ion-textarea>
+          </ion-item>
+          <ion-row>
+            <ion-col>
+              <ion-item>
+                <ion-label>Visible To</ion-label>
+                <ion-select [(ngModel)]="visibility" interface="popover" outline>
+                  <ion-option value="public">Everyone</ion-option>
+                  <ion-option value="followers">Followers</ion-option>
+                  <ion-option value="private">Only Me</ion-option>
+                </ion-select>
+              </ion-item>
+            </ion-col>
+            <ion-col align-self-center text-right>
+              <button ion-button icon-end outline small (click)='newPost(content,visibility)'>
+                <div>Post</div>
+                <ion-icon name="add"></ion-icon>
+              </button>
+            </ion-col>
+          </ion-row>
+        </ion-card>
+
+        <ion-grid>
+        <ion-row wrap>
+          <ion-card ion-col col-6 *ngFor="let post of posts | async">
+            <ion-item>
+              {{getHandle(post.poster).handle}} said
+              <button ion-button icon-end outline small (click)='follow(post.poster)'>
+                <div>Follow</div>
+                <ion-icon name="happy"></ion-icon>
+              </button>
+            </ion-item>
+            <ion-card-content>
+              <p>{{post.text}}</p>
+            </ion-card-content>
+            <ion-row>
+              <ion-col>
+                <button ion-button icon-only small clear (click)='thumbs(post.id,post.score+1)'>
+                  <ion-icon name="thumbs-up"></ion-icon>
+                </button>
+                <button ion-button icon-only small clear (click)='thumbs(post.id,post.score-1)'>
+                  <ion-icon name="thumbs-down"></ion-icon>
+                </button>
+              </ion-col>
+              <ion-col align-self-center text-right>
+                {{post.score}}
+              </ion-col>
+            </ion-row>
+          </ion-card>
+        </ion-row>
+        </ion-grid>
+      </ion-col>
+
+      <ion-col col-3>
+
+      </ion-col>
+    </ion-row>
+  </ion-grid>
 </ion-content>
