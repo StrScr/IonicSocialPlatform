@@ -6,6 +6,7 @@ import { Observable } from 'rxjs/Observable';
 import { AngularFireAuth } from 'angularfire2/auth';
 import * as firebase from 'firebase/app';
 import "rxjs/add/operator/map";
+import { Reference } from '@firebase/database-types';
 
 @Component({
   selector: 'page-home',
@@ -16,6 +17,10 @@ export class HomePage {
   currentUser: any;
   postList: AngularFireList<any>;
   posts: Observable<any>;
+  userRef: Reference;
+  //users: Observable<any>;
+  userArr: Array<any>;
+  loadedUserArr: Array<any>;
 
   visibility;
 
@@ -30,6 +35,29 @@ export class HomePage {
     this.posts = this.postList.valueChanges()
       .map(array => array.reverse()) as Observable<any[]>;
     this.visibility = 'public';
+
+    /* this.userList = afDB.list('users');
+    this.users = this.userList.valueChanges();
+    this.users.subscribe(ulist => {
+      let c_users = [];
+      ulist.
+      ulist.array.forEach(element => {
+        c_users.push(element.val());
+        return false;
+      });
+      this.userArr = c_users;
+      this.loadedUserArr = c_users;
+    }); */
+    this.userRef = firebase.database().ref('/users');
+    this.userRef.on('value', ulist => {
+      let c_users = [];
+      ulist.forEach( elem => {
+        c_users.push(elem.val());
+        return false;
+      });
+      this.userArr = c_users;
+      this.loadedUserArr = c_users;
+    });
 
     afAuth.authState.subscribe(user => {
       if (!user) {
@@ -46,7 +74,7 @@ export class HomePage {
           return;
         }
         this.currentUser['following'] = action.payload.val();
-        console.log(this.currentUser.following)
+        //console.log(this.currentUser.following)
       })
     });
   }
@@ -55,7 +83,7 @@ export class HomePage {
     this.afAuth.auth
       .signInWithPopup(new firebase.auth.GoogleAuthProvider())
       .then(res => {
-        console.log(res);
+        //console.log(res);
         const userList = this.afDB.list('users');
         userList.update(res.user.uid, 
           {
@@ -105,6 +133,31 @@ export class HomePage {
     thisUserFollow.update({
       [posterid]: true
     });
+    this.showAlert('Awesome!','You are now following this user.');
+  }
+
+  unfollow(posterid){
+    //update user following
+    if(!this.currentUser){
+      this.showAlert('Huh?','Logged out users can\'t follow people!');
+      return;
+    }
+    if(posterid==this.currentUser.uid){
+      this.showAlert('Huh?','You can\'t unfollow what you can\'t follow!');
+      return;
+    }
+    const thisUserFollow = this.afDB.object('users/' + this.currentUser.uid + '/following');
+    thisUserFollow.update({
+      [posterid]: null
+    });
+    this.showAlert('Goodbye!','You stopped following this user.');
+  }
+
+  isNotFollowing(posterid): boolean{
+    if(!this.currentUser){
+      return true;
+    }
+    return !(!!this.currentUser.following && this.currentUser.following[posterid]);
   }
 
   thumbs(postid, nscore) {
@@ -182,5 +235,29 @@ export class HomePage {
           (!!this.currentUser.following && this.currentUser.following[post.poster]))));
     //console.log(post.vis+','+disp)
     return !disp;
+  }
+
+  initUserList(){
+    this.userArr = this.loadedUserArr;
+  }
+
+  searchUsers(evnt){
+    /*
+      Thanks to jave Bratt for the search tut!
+      https://javebratt.com/searchbar-firebase/
+    */
+    this.initUserList();
+    let q = evnt.srcElement.value;
+    if(!q){
+      return;
+    }
+    this.userArr = this.userArr.filter((v) => {
+      if(v.handle && q) {
+        if (v.handle.toLowerCase().indexOf(q.toLowerCase()) > -1) {
+          return true;
+        }
+        return false;
+      }
+    });
   }
 }
